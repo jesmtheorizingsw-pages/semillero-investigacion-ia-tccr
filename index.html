@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semillero de Investigación TCCR</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos generales y fuente Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb; /* Fondo gris/pastel claro */
+        }
+        .text-tccr-primary {
+            color: #1a5e8e; /* Azul profundo académico */
+        }
+        .bg-tccr-accent {
+            background-color: #D9E9F7; /* Azul aciano pastel para fondos de tarjetas */
+        }
+        .bg-tccr-action {
+            background-color: #00A896; /* Verde turquesa vibrante para el botón Generar */
+        }
+        .bg-tccr-action:hover {
+            background-color: #00877a;
+        }
+        .bg-tccr-clear {
+            background-color: #fca5a5; /* Rojo pastel para el botón Limpiar */
+        }
+        .bg-tccr-clear:hover {
+            background-color: #f87171;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="min-h-screen p-4 sm:p-8 flex items-center justify-center">
+        <div class="w-full max-w-5xl">
+            <!-- Encabezado y Contexto TCCR -->
+            <header class="mb-8 p-6 bg-white shadow-xl rounded-xl">
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-tccr-primary mb-2">
+                    Semillero de Investigación Cognosistémica (TCCR)
+                </h1>
+                <h2 class="text-lg text-gray-600 mb-4">
+                    Investigación Empírica para Trabajo Social y Ciencias Sociales
+                </h2>
+                <p class="text-sm text-gray-700 border-l-4 border-tccr-primary pl-4 py-2 bg-gray-50 rounded-md">
+                    **Objetivo:** Generar temas y validación de hipótesis empíricas de los postulados de la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR), específicamente de sus constructos centrales: Cognosistema, Tripleta TCCR, Estructura Narrativa (8 elementos), Jerarquía de Narrativas y Fases de Cambio (Beta, Alfa, Delta).
+                </p>
+            </header>
+
+            <!-- Interfaz de Usuario -->
+            <main class="space-y-8">
+                <div class="p-6 bg-white shadow-xl rounded-xl">
+                    <label for="areaInput" class="block text-lg font-semibold text-tccr-primary mb-2">
+                        1. Defina su Área Psicosocial de Interés
+                    </label>
+                    <textarea id="areaInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-tccr-primary focus:border-tccr-primary transition duration-150 shadow-inner" placeholder="Ej: 'Impacto de la migración en las familias binacionales', 'Violencia de género en comunidades rurales', 'Innovación social en servicios de protección a la infancia'." required></textarea>
+                    
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-4">
+                        <button id="generateButton" onclick="generateResearch()" class="w-full sm:w-auto px-6 py-3 text-lg font-bold text-white bg-tccr-action rounded-lg hover:bg-opacity-90 transition duration-300 shadow-lg transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generar
+                        </button>
+                        <button id="clearButton" onclick="resetForm()" class="w-full sm:w-auto px-6 py-3 text-lg font-bold text-white bg-tccr-clear rounded-lg hover:bg-opacity-90 transition duration-300 shadow-lg transform hover:scale-[1.01] hidden">
+                            Limpiar
+                        </button>
+                    </div>
+                    
+                    <div id="errorMessage" class="hidden mt-3 text-red-600 font-medium"></div>
+                </div>
+
+                <!-- Resultados de la Investigación -->
+                <div id="resultsContainer" class="hidden">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        2. Propuestas de Investigación (Orientadas a Validación Empírica de la TCCR)
+                    </h3>
+                    <!-- Los resultados se inyectarán aquí -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // La clave API proporcionada por el usuario ha sido integrada aquí para la conectividad externa.
+        const apiKey = "AIzaSyDcSrf5qmddi3G3YdqmaQozqCzf8won3iA"; 
+        const modelName = "gemini-2.5-flash-preview-05-20";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+        // Definición estricta del esquema JSON para la salida del modelo
+        const responseSchema = {
+            type: "OBJECT",
+            properties: {
+                investigation_proposals: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            topic: { type: "STRING", description: "Tema de investigación empírica relevante para validar la TCCR." },
+                            hypotheses: {
+                                type: "ARRAY",
+                                description: "Tres hipótesis empíricas sugeridas para el tema de investigación.",
+                                items: { type: "STRING" }
+                            }
+                        },
+                        required: ["topic", "hypotheses"]
+                    }
+                }
+            },
+            required: ["investigation_proposals"]
+        };
+
+        // Instrucción del Sistema para guiar al modelo
+        const systemPrompt = `Actúa como un trabajador social experto en la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR) de Jalin Simunovic (2025). Tu rol es facilitar la investigación de posgrado. Tu tarea es generar tres temas de investigación empírica (Tópicos) innovadores y relevantes, y tres hipótesis empíricas (Hipótesis) para cada tema, orientados a la validación de los postulados centrales de la TCCR: Cognosistema, Tripleta TCCR, Estructura Narrativa (8 elementos), Jerarquía de Narrativas, Fases de Cambio Narrativo (Beta/Alfa/Delta) y Memes Cognosistémicos. El objetivo es que sirvan como semillero dinámico para profesionales de posgrado en Trabajo Social. La respuesta DEBE estar estrictamente en formato JSON, siguiendo el esquema proporcionado. Asegura el rigor académico y la conexión explícita con los constructos de la TCCR.`;
+
+        // Elementos del DOM
+        const areaInput = document.getElementById('areaInput');
+        const generateButton = document.getElementById('generateButton');
+        const clearButton = document.getElementById('clearButton');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const errorMessage = document.getElementById('errorMessage');
+
+
+        // Función para el retry con backoff exponencial
+        async function fetchWithExponentialBackoff(url, options, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429) { // Too Many Requests
+                        throw new Error(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
+                    }
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`HTTP error! status: ${response.status}. Body: ${errorBody}`);
+                    }
+                    return response;
+                } catch (error) {
+                    console.error('API call failed:', error.message);
+                    if (i === maxRetries - 1) {
+                        throw new Error("API call failed after maximum retries.");
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential backoff
+                }
+            }
+        }
+
+        /**
+         * Función para restablecer el formulario y los resultados al estado inicial.
+         */
+        function resetForm() {
+            areaInput.value = '';
+            resultsContainer.classList.add('hidden');
+            resultsContainer.innerHTML = '';
+            errorMessage.classList.add('hidden');
+            clearButton.classList.add('hidden');
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generar';
+            checkAreaInput(); // Oculta el botón de limpiar si el área está vacía.
+        }
+
+        /**
+         * Llama a la API de Gemini para generar temas de investigación y los renderiza.
+         */
+        async function generateResearch() {
+            const areaOfInterest = areaInput.value.trim();
+
+            if (!areaOfInterest) {
+                errorMessage.textContent = 'Por favor, ingrese el área psicosocial de interés para generar los temas.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Ocultar mensaje de error y deshabilitar botón
+            errorMessage.classList.add('hidden');
+            generateButton.disabled = true;
+            generateButton.textContent = 'Analizando...'; // Texto más corto para el botón
+            clearButton.classList.add('hidden'); // Ocultar limpiar durante la generación
+            resultsContainer.innerHTML = `
+                <div class="flex items-center justify-center p-8 bg-white rounded-lg shadow-lg">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-tccr-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-tccr-primary font-semibold">Formulando propuestas basadas en la TCCR...</span>
+                </div>
+            `;
+            resultsContainer.classList.remove('hidden');
+
+            const userQuery = `Genera tres temas de investigación empírica con sus respectivas hipótesis, innovadores y relevantes para la validación de la TCCR, centrados en el área psicosocial de: ${areaOfInterest}.`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            };
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!jsonText) {
+                    throw new Error("No se pudo obtener una respuesta JSON válida del modelo.");
+                }
+
+                const data = JSON.parse(jsonText);
+                renderResults(data.investigation_proposals);
+
+            } catch (error) {
+                console.error('Error durante la generación de la investigación:', error);
+                errorMessage.textContent = `Error en la comunicación con el modelo: ${error.message}. Por favor, intente de nuevo.`;
+                errorMessage.classList.remove('hidden');
+                // Limpiar loader
+                resultsContainer.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        2. Propuestas de Investigación (Orientadas a Validación Empírica de la TCCR)
+                    </h3>
+                    <p class="text-red-500 p-4 bg-red-100 rounded-lg">Ocurrió un error. Verifique su conexión y la validez del área de interés.</p>
+                `;
+
+            } finally {
+                generateButton.disabled = false;
+                generateButton.textContent = 'Generar';
+                clearButton.classList.remove('hidden'); // Mostrar Limpiar al finalizar (éxito o error)
+            }
+        }
+
+        /**
+         * Renderiza los resultados de la API en el contenedor HTML.
+         */
+        function renderResults(proposals) {
+            
+            let html = `
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                    2. Propuestas de Investigación (Orientadas a Validación Empírica de la TCCR)
+                </h3>
+            `;
+
+            proposals.forEach((proposal, index) => {
+                html += `
+                    <div class="mb-8 p-6 bg-white rounded-xl shadow-lg border-t-8 border-tccr-primary">
+                        <h4 class="text-xl font-extrabold text-tccr-primary mb-3">
+                            TEMA ${index + 1}: ${proposal.topic}
+                        </h4>
+                        <p class="text-gray-600 mb-4 italic text-sm">
+                            Foco de Validación TCCR: Este tema está diseñado para medir el constructo de ${getTCCRConstruct(index)} en un contexto empírico.
+                        </p>
+                        <h5 class="text-lg font-bold text-gray-700 mb-2 mt-4">
+                            Sugerencias de Hipótesis Empíricas (n=3):
+                        </h5>
+                        <ul class="list-none space-y-3">
+                `;
+                proposal.hypotheses.forEach((hypothesis, hIndex) => {
+                    html += `
+                        <li class="p-3 bg-tccr-accent rounded-lg shadow-inner">
+                            <span class="font-bold text-tccr-primary mr-2">${index + 1}.${hIndex + 1}.</span> 
+                            <span class="text-gray-800">${hypothesis}</span>
+                        </li>
+                    `;
+                });
+                html += `
+                        </ul>
+                    </div>
+                `;
+            });
+
+            // Se mantiene el encabezado de resultados antes de inyectar el contenido
+            resultsContainer.innerHTML = html;
+            resultsContainer.classList.remove('hidden');
+        }
+
+        /**
+         * Asigna un constructo central de la TCCR a cada tema para forzar la orientación.
+         */
+        function getTCCRConstruct(index) {
+            const constructs = [
+                "Jerarquía y Movilidad de Narrativas (Subyugadas vs. Dominantes)",
+                "Dinámica de Fases Narrativas (Alfa, Beta, Delta) y Resiliencia",
+                "Impacto de los Memes Cognosistémicos en el Cognosistema Meso-Nivel"
+            ];
+            return constructs[index % constructs.length];
+        }
+
+        /**
+         * Verifica el contenido del área de texto para mostrar u ocultar el botón Limpiar.
+         */
+        function checkAreaInput() {
+            if (areaInput.value.trim().length > 0 || resultsContainer.classList.contains('hidden') === false) {
+                // Si hay texto o si los resultados están visibles, muestra el botón.
+                clearButton.classList.remove('hidden');
+            } else {
+                // Si está vacío y no hay resultados, ocúltalo.
+                clearButton.classList.add('hidden');
+            }
+        }
+
+        // Inicializar la aplicación al cargar la ventana
+        window.onload = () => {
+            // Añadir el listener para mostrar/ocultar el botón Limpiar mientras el usuario escribe
+            areaInput.addEventListener('input', checkAreaInput);
+            // Ejecutar una vez al cargar para ocultar el botón si la página se cargó limpia
+            checkAreaInput(); 
+            console.log("Semillero TCCR listo para generar propuestas.");
+        };
+
+    </script>
+</body>
+</html>
