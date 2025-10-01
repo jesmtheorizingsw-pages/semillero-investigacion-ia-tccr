@@ -97,21 +97,26 @@
                         type: "OBJECT",
                         properties: {
                             topic: { type: "STRING", description: "Tema de investigación empírica relevante para validar la TCCR." },
+                            // CAMBIO: Nuevo campo para que el modelo identifique el foco teórico, eliminando el filtro hardcodeado.
+                            tccr_construct_focus: { 
+                                type: "STRING", 
+                                description: "El constructo central de la TCCR (Ej: 'Fase Alfa y Movilidad Narrativa Descendente' o 'Memes de Fricción') que el tema busca validar empíricamente. Debe ser específico y complejo." 
+                            },
                             hypotheses: {
                                 type: "ARRAY",
                                 description: "Tres hipótesis empíricas sugeridas para el tema de investigación.",
                                 items: { type: "STRING" }
                             }
                         },
-                        required: ["topic", "hypotheses"]
+                        required: ["topic", "tccr_construct_focus", "hypotheses"]
                     }
                 }
             },
             required: ["investigation_proposals"]
         };
 
-        // Instrucción del Sistema para guiar al modelo
-        const systemPrompt = `Actúa como un trabajador social experto en la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR) de Jalin Simunovic (2025). Tu rol es facilitar la investigación de posgrado. Tu tarea es generar tres temas de investigación empírica (Tópicos) innovadores y relevantes, y tres hipótesis empíricas (Hipótesis) para cada tema, orientados a la validación de los postulados centrales de la TCCR. La validación debe enfocarse en los siguientes constructos centrales: el Cognosistema, los 8 elementos de la Estructura Narrativa (Experiencia, Percepciones y Emociones, Contexto, Contenido Proposicional, Evaluación Cognitiva, Actitud Epistémica, Propósito Narrativo, Función Narrativa), el Ciclo Vital de los Sistemas Narrativos (Surgimiento, Desarrollo, Madurez, Declive/Transformación, Renovación), la Jerarquía de Narrativas, la Movilidad Narrativa (Ascendente, Descendente, Horizontal), las Fases de Cambio Narrativo (Beta/Alfa/Delta) y los Memes Cognosistémicos. El objetivo es que sirvan como semillero dinámico para profesionales de posgrado en Trabajo Social. La respuesta DEBE estar estrictamente en formato JSON, siguiendo el esquema proporcionado. Asegura el rigor académico y la conexión explícita con los constructos de la TCCR.`;
+        // Instrucción del Sistema para guiar al modelo (Ahora incorpora la Regla de Oro de la auto-identificación del constructo)
+        const systemPrompt = `Actúa como un trabajador social experto en la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR) de Jalin Simunovic (2025). Tu rol es facilitar la investigación de posgrado. Tu tarea es generar tres temas de investigación empírica (Tópicos) innovadores y relevantes, y tres hipótesis empíricas (Hipótesis) para cada tema, orientados a la validación de los postulados centrales de la TCCR. Para cada propuesta, debes identificar y nombrar con precisión el constructo central más relevante de la TCCR (usando Cognosistema, los 8 elementos, Ciclo Vital, Jerarquía, Movilidad, Fases Beta/Alfa/Delta y Memes) que se busca validar. Asegúrate de que los tres tópicos se centren en constructos complejos y distintos para cubrir el mayor espectro posible de la teoría, tal como lo exigen las Reglas de Oro conceptuales. El objetivo es que sirvan como semillero dinámico para profesionales de posgrado en Trabajo Social. La respuesta DEBE estar estrictamente en formato JSON, siguiendo el esquema proporcionado. Asegura el rigor académico y la conexión explícita con los constructos de la TCCR.`;
 
         // Elementos del DOM
         const areaInput = document.getElementById('areaInput');
@@ -253,7 +258,7 @@
                             TEMA ${index + 1}: ${proposal.topic}
                         </h4>
                         <p class="text-gray-600 mb-4 italic text-sm">
-                            Foco de Validación TCCR: Este tema está diseñado para medir el constructo de <strong>${getTCCRConstruct(index)}</strong> en un contexto empírico.
+                            Foco de Validación TCCR: Este tema está diseñado para medir el constructo de <strong>${proposal.tccr_construct_focus}</strong> en un contexto empírico.
                         </p>
                         <h5 class="text-lg font-bold text-gray-700 mb-2 mt-4">
                             Sugerencias de Hipótesis Empíricas (n=3):
@@ -280,21 +285,8 @@
         }
 
         /**
-         * Asigna un constructo central de la TCCR a cada tema para forzar la orientación.
-         * Esta función ahora tiene un set más amplio y específico que integra los elementos solicitados.
-         */
-        function getTCCRConstruct(index) {
-            const constructs = [
-                "Movilidad Narrativa y Desplazamiento Jerárquico (Ascendente/Descendente)",
-                "Validación del elemento 'Función Narrativa' de los Sistemas Narrativos",
-                "Ciclo Vital Narrativo (Surgimiento/Renovación) y su vínculo con las Fases de Cambio (Alfa/Delta)"
-            ];
-            // Usa el operador módulo para ciclar a través de los constructos disponibles
-            return constructs[index % constructs.length];
-        }
-
-        /**
          * Verifica el contenido del área de texto para mostrar u ocultar el botón Limpiar.
+         * NOTA: La función 'getTCCRConstruct' ha sido eliminada.
          */
         function checkAreaInput() {
             if (areaInput.value.trim().length > 0 || resultsContainer.classList.contains('hidden') === false) {
