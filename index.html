@@ -31,6 +31,15 @@
         .bg-tccr-clear:hover {
             background-color: #f87171;
         }
+        /* Estilo para el pie de página (licencia) */
+        .footer-license {
+            font-size: 0.75rem; /* Pequeño */
+            color: #6b7280; /* Gris */
+            margin-top: 40px;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +87,12 @@
                     <!-- Los resultados se inyectarán aquí -->
                 </div>
             </main>
+            
+            <!-- Pie de página con licencia de derechos de autor -->
+            <footer class="footer-license">
+                Semillero de Investigación Cognosistémica (TCCR) © 2025 por Jalin Simunovic tiene licencia CC BY 4.0
+            </footer>
+
         </div>
     </div>
 
@@ -99,7 +114,7 @@
                             // El modelo debe identificar el foco teórico con máxima precisión.
                             tccr_construct_focus: { 
                                 type: "STRING", 
-                                description: "El constructo central de la TCCR (Ej: 'Fase Alfa y Movilidad Narrativa Descendente' o 'Memes de Fricción') que el tema busca validar empíricamente. Debe ser específico y complejo, respetando TODAS las Reglas de Oro." 
+                                description: "El constructo central de la TCCR (Ej: 'Fase Alfa y Movilidad Narrativa Descendente' o 'Memes de Fricción') que el tema busca validar empíricamente. Debe ser específico y complejo, pero con lenguaje académico limpio, SIN referencias a 'Regla', 'PROHIBIDO', o numeraciones internas." 
                             },
                             hypotheses: {
                                 type: "ARRAY",
@@ -115,39 +130,43 @@
         };
 
         // Bloque de Instrucciones Académicas TCCR (Matriz de Rigor TCCR)
-        // ESTE BLOQUE CONTIENE TODAS LAS REGLAS DE ORO DEL DOCUMENTO
+        // ESTE BLOQUE CONTIENE TODAS LAS REGLAS DE ORO DEL DOCUMENTO + LA REGLA DE NO MOSTRARLAS EN LA SALIDA.
         const academicConstraints = `
             MATRIZ DE RIGOR CONCEPTUAL TCCR (REGLAS DE ORO INAMOVIBLES):
             
-            1. ANCLAJE PARADIGMÁTICO (Regla 0): Toda propuesta debe preservar la mirada cognosistémica: realidad psicosocial como construcción narrativa relacional dentro de Cognosistemas específicos, con multinivelidad, jerarquías narrativas, circulación de sentido, poder, temporalidad y validación ética.
+            1. ANCLAJE PARADIGMÁTICO: Toda propuesta debe preservar la mirada cognosistémica: realidad psicosocial como construcción narrativa relacional dentro de Cognosistemas específicos, con multinivelidad, jerarquías narrativas, circulación de sentido, poder, temporalidad y validación ética.
 
-            2. COGNOSISTEMA (Regla 1 y Errores Prohibidos): 
+            2. COGNOSISTEMA (Anclaje Societal): 
                - Siempre se ancla a una SOCIEDAD específica y su periodo histórico. 
                - NUNCA asignar a un individuo, familia, grupo o empresa aislada (son Sistemas Narrativos micro/meso). 
                - Debe incluir capas (micro/meso/exo/macro) e interdependencias.
                - No es sinónimo de "cultura" o "discurso hegemónico".
 
-            3. SISTEMA NARRATIVO COGNOSISTÉMICO - SNC (Reglas 2, 3 y 4):
+            3. SISTEMA NARRATIVO COGNOSISTÉMICO - SNC (Estructura de 8 Elementos):
                - Es una unidad dentro del Cognosistema y se define por sus 8 elementos diferenciados.
-               - Colapsar Núcleo Narrativo (Contenido Proposicional, abstracto) y Cuerpo Narrativo (Evaluación Cognitiva, concreta) está PROHIBIDO.
-               - Colapsar Propósito Narrativo (intención) y Función Narrativa (efecto relacional/social) está PROHIBIDO.
+               - PROHIBIDO colapsar el Núcleo Narrativo (Contenido Proposicional, abstracto) y el Cuerpo Narrativo (Evaluación Cognitiva, concreta).
+               - PROHIBIDO colapsar el Propósito Narrativo (intención) y la Función Narrativa (efecto relacional/social).
 
-            4. DINÁMICA DE CAMBIO Y MOVILIDAD (Reglas 5, 6, 7, 8 y 9):
+            4. DINÁMICA DE CAMBIO Y MOVILIDAD:
                - Ciclo Vital: Debe usar la secuencia Surgimiento -> Desarrollo -> Madurez -> Declive/Transformación -> Renovación.
                - Fases de Desplazamiento: Debe usar Fase Beta (Estabilidad), Fase Alfa (Crisis/Fricción) y Fase Delta (Reorganización).
                - Jerarquía: Las narrativas se estratifican por su poder (Hegemónicas, Desafiantes, Subyugadas, etc.).
                - Movilidad: El cambio se describe mediante la Movilidad (Ascendente, Descendente, Horizontal).
                - Fricciones: Son estructurales y generan crisis (Fase Alfa) que impulsan la Movilidad.
 
-            5. MEMES COGNOSISTÉMICOS (Regla 10): 
+            5. MEMES COGNOSISTÉMICOS: 
                - Son unidades estratégicas diseñadas para incidir socioculturalmente.
                - Deben clasificarse por su FUNCIÓN: Consolidación, Fricción o Transición.
 
-            6. PROPIEDADES NARRATIVAS (Reglas 11, 12, 13 y 25): 
-               - Autopoiesis: Reconocer la autoorganización de los SNCs.
-               - Plasticidad y Resiliencia: Analizar la capacidad de reconfiguración y retorno al equilibrio funcional.
-               - Historicidad: NUNCA analizar una narrativa fuera de su contexto temporal y cultural. Omitir periodización está PROHIBIDO.
-            
+            6. PROPIEDADES NARRATIVAS: 
+               - Se debe reconocer la Autopoiesis, Plasticidad, Resiliencia e Historicidad de las narrativas.
+               - NUNCA analizar una narrativa fuera de su contexto temporal y cultural.
+
+            7. REGLA FINAL DE PRESENTACIÓN DE SALIDA (NO NEGOCIABLE):
+               - El texto generado para el campo 'tccr_construct_focus' DEBE ser riguroso, pero limpio.
+               - PROHIBIDO incluir en el JSON CUALQUIER referencia explícita a 'Regla', 'PROHIBIDO', 'Error Prohibido', 'Numeración' o cualquier otra restricción interna de este prompt.
+               - El foco debe ser SÓLO en el CONSTRUCTO TEÓRICO (Ej: "La dinámica de colapso entre el Núcleo y el Cuerpo Narrativo")
+
             Su tarea es generar 3 propuestas con temas e hipótesis que demuestren un manejo riguroso y diferenciado de estos constructos, enfocando cada propuesta en un constructo TCCR distinto y complejo.
         `;
 
@@ -257,7 +276,18 @@
                     throw new Error("No se pudo obtener una respuesta JSON válida del modelo.");
                 }
 
+                // El JSON debe ser validado aquí para asegurar que las reglas internas no se filtraron.
                 const data = JSON.parse(jsonText);
+
+                // Validación de seguridad adicional
+                data.investigation_proposals = data.investigation_proposals.map(proposal => {
+                    // Limpiar el campo de foco teórico de cualquier referencia interna
+                    proposal.tccr_construct_focus = proposal.tccr_construct_focus
+                        .replace(/Regla\s*\d+\s*|PROHIBIDO\s*|Error\s*Prohibido\s*/gi, '')
+                        .trim();
+                    return proposal;
+                });
+
                 renderResults(data.investigation_proposals);
 
             } catch (error) {
