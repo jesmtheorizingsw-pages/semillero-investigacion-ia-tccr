@@ -82,8 +82,7 @@
     </div>
 
     <script>
-        // La clave API proporcionada por el usuario ha sido integrada aquí para la conectividad externa.
-        const apiKey = "AIzaSyDcSrf5qmddi3G3YdqmaQozqCzf8won3iA"; 
+        const apiKey = "AIzaSyDcSrf5qmddi3G3YdqmaQozqCzf8won3iA"; //
         const modelName = "gemini-2.5-flash-preview-05-20";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -97,10 +96,10 @@
                         type: "OBJECT",
                         properties: {
                             topic: { type: "STRING", description: "Tema de investigación empírica relevante para validar la TCCR." },
-                            // CAMBIO: Nuevo campo para que el modelo identifique el foco teórico, eliminando el filtro hardcodeado.
+                            // El modelo debe identificar el foco teórico con máxima precisión.
                             tccr_construct_focus: { 
                                 type: "STRING", 
-                                description: "El constructo central de la TCCR (Ej: 'Fase Alfa y Movilidad Narrativa Descendente' o 'Memes de Fricción') que el tema busca validar empíricamente. Debe ser específico y complejo." 
+                                description: "El constructo central de la TCCR (Ej: 'Fase Alfa y Movilidad Narrativa Descendente' o 'Memes de Fricción') que el tema busca validar empíricamente. Debe ser específico y complejo, respetando TODAS las Reglas de Oro." 
                             },
                             hypotheses: {
                                 type: "ARRAY",
@@ -115,8 +114,45 @@
             required: ["investigation_proposals"]
         };
 
-        // Instrucción del Sistema para guiar al modelo (Ahora incorpora la Regla de Oro de la auto-identificación del constructo)
-        const systemPrompt = `Actúa como un trabajador social experto en la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR) de Jalin Simunovic (2025). Tu rol es facilitar la investigación de posgrado. Tu tarea es generar tres temas de investigación empírica (Tópicos) innovadores y relevantes, y tres hipótesis empíricas (Hipótesis) para cada tema, orientados a la validación de los postulados centrales de la TCCR. Para cada propuesta, debes identificar y nombrar con precisión el constructo central más relevante de la TCCR (usando Cognosistema, los 8 elementos, Ciclo Vital, Jerarquía, Movilidad, Fases Beta/Alfa/Delta y Memes) que se busca validar. Asegúrate de que los tres tópicos se centren en constructos complejos y distintos para cubrir el mayor espectro posible de la teoría, tal como lo exigen las Reglas de Oro conceptuales. El objetivo es que sirvan como semillero dinámico para profesionales de posgrado en Trabajo Social. La respuesta DEBE estar estrictamente en formato JSON, siguiendo el esquema proporcionado. Asegura el rigor académico y la conexión explícita con los constructos de la TCCR.`;
+        // Bloque de Instrucciones Académicas TCCR (Matriz de Rigor TCCR)
+        // ESTE BLOQUE CONTIENE TODAS LAS REGLAS DE ORO DEL DOCUMENTO
+        const academicConstraints = `
+            MATRIZ DE RIGOR CONCEPTUAL TCCR (REGLAS DE ORO INAMOVIBLES):
+            
+            1. ANCLAJE PARADIGMÁTICO (Regla 0): Toda propuesta debe preservar la mirada cognosistémica: realidad psicosocial como construcción narrativa relacional dentro de Cognosistemas específicos, con multinivelidad, jerarquías narrativas, circulación de sentido, poder, temporalidad y validación ética.
+
+            2. COGNOSISTEMA (Regla 1 y Errores Prohibidos): 
+               - Siempre se ancla a una SOCIEDAD específica y su periodo histórico. 
+               - NUNCA asignar a un individuo, familia, grupo o empresa aislada (son Sistemas Narrativos micro/meso). 
+               - Debe incluir capas (micro/meso/exo/macro) e interdependencias.
+               - No es sinónimo de "cultura" o "discurso hegemónico".
+
+            3. SISTEMA NARRATIVO COGNOSISTÉMICO - SNC (Reglas 2, 3 y 4):
+               - Es una unidad dentro del Cognosistema y se define por sus 8 elementos diferenciados.
+               - Colapsar Núcleo Narrativo (Contenido Proposicional, abstracto) y Cuerpo Narrativo (Evaluación Cognitiva, concreta) está PROHIBIDO.
+               - Colapsar Propósito Narrativo (intención) y Función Narrativa (efecto relacional/social) está PROHIBIDO.
+
+            4. DINÁMICA DE CAMBIO Y MOVILIDAD (Reglas 5, 6, 7, 8 y 9):
+               - Ciclo Vital: Debe usar la secuencia Surgimiento -> Desarrollo -> Madurez -> Declive/Transformación -> Renovación.
+               - Fases de Desplazamiento: Debe usar Fase Beta (Estabilidad), Fase Alfa (Crisis/Fricción) y Fase Delta (Reorganización).
+               - Jerarquía: Las narrativas se estratifican por su poder (Hegemónicas, Desafiantes, Subyugadas, etc.).
+               - Movilidad: El cambio se describe mediante la Movilidad (Ascendente, Descendente, Horizontal).
+               - Fricciones: Son estructurales y generan crisis (Fase Alfa) que impulsan la Movilidad.
+
+            5. MEMES COGNOSISTÉMICOS (Regla 10): 
+               - Son unidades estratégicas diseñadas para incidir socioculturalmente.
+               - Deben clasificarse por su FUNCIÓN: Consolidación, Fricción o Transición.
+
+            6. PROPIEDADES NARRATIVAS (Reglas 11, 12, 13 y 25): 
+               - Autopoiesis: Reconocer la autoorganización de los SNCs.
+               - Plasticidad y Resiliencia: Analizar la capacidad de reconfiguración y retorno al equilibrio funcional.
+               - Historicidad: NUNCA analizar una narrativa fuera de su contexto temporal y cultural. Omitir periodización está PROHIBIDO.
+            
+            Su tarea es generar 3 propuestas con temas e hipótesis que demuestren un manejo riguroso y diferenciado de estos constructos, enfocando cada propuesta en un constructo TCCR distinto y complejo.
+        `;
+
+        // Instrucción del Sistema (enfocada en el rol y formato)
+        const systemPrompt = `Actúa como un trabajador social experto en la Teoría Cognosistémica de la Construcción Relacional Psicosocial Humana (TCCR) de Jalin Simunovic (2025). Tu rol es facilitar la investigación de posgrado. Tu respuesta DEBE estar estrictamente en formato JSON, siguiendo el esquema proporcionado.`;
 
         // Elementos del DOM
         const areaInput = document.getElementById('areaInput');
@@ -192,7 +228,10 @@
             `;
             resultsContainer.classList.remove('hidden');
 
-            const userQuery = `Genera tres temas de investigación empírica con sus respectivas hipótesis, innovadores y relevantes para la validación de la TCCR, centrados en el área psicosocial de: ${areaOfInterest}.`;
+            // 1. Integración de TODAS las Reglas de Oro al inicio del query.
+            const userQuery = academicConstraints + `
+                Ahora, genera tres temas de investigación empírica con sus respectivas hipótesis, innovadores y relevantes para la validación de la TCCR, centrados en el área psicosocial de: "${areaOfInterest}".
+            `;
             
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
@@ -286,7 +325,6 @@
 
         /**
          * Verifica el contenido del área de texto para mostrar u ocultar el botón Limpiar.
-         * NOTA: La función 'getTCCRConstruct' ha sido eliminada.
          */
         function checkAreaInput() {
             if (areaInput.value.trim().length > 0 || resultsContainer.classList.contains('hidden') === false) {
