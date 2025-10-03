@@ -97,9 +97,9 @@
     </div>
 
     <script>
-        const apiKey = "AIzaSyDcSrf5qmddi3G3YdqmaQozqCzf8won3iA"; //
-        const modelName = "gemini-2.5-flash-preview-05-20";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const ENDPOINT = "https://timely-hummingbird-fa79a0.netlify.app/.netlify/functions/gemini";
+        const APP_TOKEN = ""; // opcional: si activaste APP_CLIENT_TOKEN en Netlify, ponlo aquí
+        // (sin API key en el front; ahora todo pasa por Netlify)
 
         // Definición estricta del esquema JSON para la salida del modelo
         const responseSchema = {
@@ -253,24 +253,25 @@
             `;
             
             const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: responseSchema
-                }
+               text: userQuery,
+               systemInstruction: systemPrompt,
+               generationConfig: {
+                   responseMimeType: "application/json",
+                   responseSchema: responseSchema
+               }
             };
 
+
             try {
-                const response = await fetchWithExponentialBackoff(apiUrl, {
+                const response = await fetchWithExponentialBackoff(ENDPOINT, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-App-Key': APP_TOKEN },
                     body: JSON.stringify(payload)
                 });
                 
                 const result = await response.json();
                 
-                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                const jsonText = result?.output?.text;
 
                 if (!jsonText) {
                     throw new Error("No se pudo obtener una respuesta JSON válida del modelo.");
